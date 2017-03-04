@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Earth And Moon</title>
+        <!--引入Three.js-->
+        <script type="text/javascript" src="js/three.js"></script>
+        <script type="text/javascript">
+            var renderer,width,height;
+            var moonOrbital=0;//公转控制器
+            var moonOrbitalRadius = 40;//公转轨道半径
+            var moonOrbitalSpeed=0.1;//公转速度
+            var earthRotation=0,moonRotation=0;//自转控制器
+            var earthRotationSpeed=0.003//自转速度
+            
+            var BasicMaterial = new THREE.MeshBasicMaterial({
+                    color: "#66aee8",
+                    opacity:0.25,
+                    transparent:true,
+                    wireframe:true,
+                    wireframeLinewidth:1,
+                    fog:false,
+                    shading:THREE.FlatShading,
+                    side: THREE.DoubleSide
+                });
+            //地球材质
+            var earthMap = new THREE.ImageUtils.loadTexture("images/earthMap.jpg"); 
+            //var earthBump = new THREE.ImageUtils.loadTexture("images/earth_bump.jpg"); 
+            var earthNormalmap = new THREE.ImageUtils.loadTexture("images/earth_normalmap.jpg"); 
+            var LambertMaterial_Earth = new THREE.MeshPhongMaterial({
+                    map:earthMap,
+                    normalMap:earthNormalmap,
+                    //emissive:"#00a7ff",
+                    //color:"#00a7ff",
+                    ambient:0.1,
+                    // specular:"#94daff",
+                    // shininess:300,
+                    // bumpMap:earthBump,
+                    // bump:0.03
+                })
+            //月球材质
+            var moonMap = new THREE.ImageUtils.loadTexture("images/moonMap.jpg"); 
+            //var moonBump = new THREE.ImageUtils.loadTexture("images/moonMapA.jpg"); 
+            var mooonNormalmap = new THREE.ImageUtils.loadTexture("images/moon_normalmap.jpg"); 
+            var LambertMaterial_Moon = new THREE.MeshPhongMaterial({
+                    map:moonMap,
+                    normalMap:mooonNormalmap
+                    // bumpMap:moonBump,
+                    // bump:0.003
+                })
+            
+            function initThree() {
+                width = document.getElementById('canvas3d').clientWidth;
+                height = document.getElementById('canvas3d').clientHeight;
+                renderer=new THREE.WebGLRenderer({
+                    antialias:true,       //是否开启反锯齿  
+                    precision:"highp",    //着色精度选择  
+                    alpha:true,           //是否可以设置背景色透明  
+                    preserveDrawingBuffer:true, //是否保存绘图缓冲
+                });
+                renderer.setSize(width, height );
+                renderer.shadowMapEnabled = true;
+                document.getElementById('canvas3d').appendChild(renderer.domElement);
+              }
+            //设置相机
+            var camera;
+            function initCamera() { 
+                camera = new THREE.PerspectiveCamera( 45, width / height , 1 , 5000 );//设置透视投影的相机,默认情况下相机的上方向为Y轴，右方向为X轴，沿着Z轴朝里（视野角：fov 纵横比：aspect 相机离视体积最近的距离：near 相机离视体积最远的距离：far）
+                camera.position.set(80,-60,80);//设置相机的位置坐标
+                camera.up.x = 0;
+                camera.up.y = -1;
+                camera.up.z = 0;
+                camera.lookAt( {x:0, y:0, z:0 } );//设置视野的中心坐标
+            }
+            //设置场景
+            var scene;
+            function initScene() {
+                scene = new THREE.Scene();
+            }
+
+            //设置光源
+            var light;
+            function initLight() { 
+                light = new THREE.DirectionalLight(0xffffff, 1.5, 0);//设置平行光源
+                light.position.set( 100, -20, 0 );//设置光源位置
+                light.castShadow = true;//投影
+                scene.add(light);// 追加光源到场景
+            }
+            //设置坐标盘
+            var coordinate;
+            function initCoordinate(){
+                coordinate = new THREE.Mesh(
+                    new THREE.PlaneGeometry( 100, 100, 50, 50 ),
+                    BasicMaterial
+                )
+                scene.add(coordinate);
+                coordinate.rotation.x = Math.PI * 0.5;
+                coordinate.position.set(0,0,0);
+            }
+            //设置地球
+            var earth;
+            function initEarth(){  
+                earth = new THREE.Mesh(
+                    new THREE.SphereGeometry(20,20,20),                //width,height,depth
+                    LambertMaterial_Earth//材质设定
+                );
+                scene.add(earth);
+                earth.position.set(0,0,0);
+                earth.rotation.x = 360/23.5;
+            }
+            //设置月球
+            var moon;
+            function initMoon(){  
+                moon = new THREE.Mesh(
+                    new THREE.SphereGeometry(6,20,20),                //width,height,depth
+                    LambertMaterial_Moon//材质设定
+                );
+                moon.castShadow = true;
+                earth.receiveShadow = true; //投影
+                scene.add(moon);
+                moon.position.set(0,0,0);
+                //moon.rotation.x = 360/23.5;
+            }
+            //刷新  
+            window.requestAnimFrame = (function(){  
+              return  window.requestAnimationFrame       ||  
+                      window.webkitRequestAnimationFrame ||  
+                      window.mozRequestAnimationFrame    ||  
+                      function( callback,element ){  
+                        window.setTimeout(callback, 1000 / 60);  
+                      };  
+            })();  
+               //渲染  
+            function renderScene(){
+                renderer.clear(); 
+                renderer.render(scene, camera); 
+            }  
+            //循环  
+            function tick(){
+                earthRotation += earthRotationSpeed;
+                earth.rotation.y = PiReaset(earthRotation);
+
+                moonOrbital += moonOrbitalSpeed;
+                moon.position.x = sinRadianRadius(moonOrbital,moonOrbitalRadius);
+                moon.position.z = cosRadianRadius(moonOrbital,moonOrbitalRadius);
+                moonRotation = Math.PI/180*moonOrbital;
+                moon.rotation.y = PiReaset(moonRotation);
+                requestAnimFrame(tick); 
+                renderScene();
+            }
+            function PiReaset(con){
+                if (con > Math.PI * 2) {
+                    con -= Math.PI * 2;
+                }
+                return con;
+            } 
+            function sinRadianRadius(Radian,Radius){
+                var result = Radius*Math.sin(Math.PI/180*Radian)
+                return result;
+            }
+            function cosRadianRadius(Radian,Radius){
+                var result = Radius*Math.cos(Math.PI/180*Radian)
+                return result;
+            }
+            //执行
+            function threeStart() {
+                initThree();
+                initCamera();
+                initScene();   
+                initLight();
+                initCoordinate();
+                initEarth();
+                initMoon();
+                tick();
+            } 
+        </script>
+        <style type="text/css">
+            body{
+                margin: 0;
+                padding: 0;
+                background: #000;
+            }
+            #canvas3d{
+                  border: none;
+                  cursor: move;
+                  width: 700px;
+                  height: 700px;
+                  margin:0 auto;
+                  background-color: #000;
+                }
+        </style>
+    </head>
+
+    <body onload='threeStart();'>
+        <!--盛放canvas的容器-->
+        <div id="canvas3d"></div>
+    </body>
+</html>
