@@ -1,0 +1,28 @@
+{
+  "name": "earchmoon",
+  "version": "0.1.0",
+  "description": "a webVR project",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Pumpe/Earth-And-Moon.git"
+  },
+  "keywords": [
+    "webGL",
+    "webVR",
+    "3D",
+    "three.js"
+  ],
+  "author": "ZP",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Pumpe/Earth-And-Moon/issues"
+  },
+  "homepage": "https://github.com/Pumpe/Earth-And-Moon#readme",
+  "dependencies": {
+    "three": "^0.84.0"
+  }
+}
